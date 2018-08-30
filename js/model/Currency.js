@@ -7,14 +7,18 @@ export default class Currency {
             this.symbol = symbol,
             this.price = price,
             this.perc24h = perc24h,
-            this.amount = 0
+            this.amount = 0,
+            this.userValue = 0;
     }
 
     setAmount(amount) {
         this.amount = amount;
+        this.calculateValue();
     }
 
     calculateValue() {
-        return (this.amount * this.price).toFixed(2);
+        if(this.amount > 0) {
+            this.userValue = (this.amount * this.price).toFixed(2);
+        }
     }
 }

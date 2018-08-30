@@ -43,15 +43,26 @@ import Currency from "./js/model/Currency";
 
     // input controller
 
-    const handleUserCurrency = (e) => {
-        let userInput;
-        if(e.target.classList.contains('input__btn')){
-            userInput = e.target.previousElementSibling.value;
-            console.log(userInput);
-        }
+    
+    elements.tableBody.addEventListener('click', e => {
 
-    }
-    elements.tableBody.addEventListener('click', handleUserCurrency);
+        if(e.target.classList.contains('input__btn')){
+
+            let userInput = parseInt(e.target.previousElementSibling.value, 10);
+            let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+            if(userInput > 0) {
+                // updating state
+                state.currencyTable.updateItem(selectedRowId, userInput);   
+                //update view
+                currencyTableView.updateUserValue(selectedRowId, state.currencyTable.items[selectedRowId - 1].userValue);
+            }
+            // console.log(state.currencyTable.items[selectedRowId - 1]);
+        }
+    });
+    // selectedCurrency = state.currencyTable.items.filter(el => {
+            //     return el.id === selectedRowId;
+            // }, )
+            //selectedCurrency.setAmount(userInput);
 
 
     // elements.tableBody.addEventListener('keydown', e => {

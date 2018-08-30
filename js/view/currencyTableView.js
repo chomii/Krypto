@@ -1,8 +1,8 @@
 import { elements } from './base';
-export const getInput = () => elements.inputField.value;
+
 export const renderItem = item => {
     const markup = `
-        <tr>
+        <tr data-rowId="${item.id}">
             <td>${item.name}</td>
             <td>${item.symbol}</td>
             <td>${(item.price).toFixed(2)} $</td>
@@ -11,7 +11,7 @@ export const renderItem = item => {
                 <input class="input__field" type="number" name="amount" placeholder="Amount" />
                 <button class="input__btn" type="button">Submit</button>
             </td>
-            <td>0.00 $</td>
+            <td class="input__value">${item.userValue} $</td>
         </tr>
     `
     elements.tableBody.insertAdjacentHTML('beforeend', markup)
@@ -19,4 +19,9 @@ export const renderItem = item => {
 
 const stylePercentChange = (value) => {
     return value > 0 ? "green" : "red"
+}
+
+export const updateUserValue = (id, newValue) => {
+    const itemToUpdate = document.querySelector(`[data-rowid="${id}"]`);
+    console.log(itemToUpdate.childNodes.keys);
 }
