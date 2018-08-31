@@ -11,10 +11,16 @@ export const renderItem = item => {
                 <input class="input__field" type="number" name="amount" placeholder="Amount" />
                 <button class="input__btn" type="button">Submit</button>
             </td>
-            <td class="input__value">${item.userValue} $</td>
+            <td class="input__value">$ ${item.userValue}</td>
         </tr>
     `
+    
     elements.tableBody.insertAdjacentHTML('beforeend', markup)
+
+    // render amount from local //todo
+    if(item.amount !== 0) {
+        document.querySelector('.input__field').value = item.amount;
+    }
 }
 
 const stylePercentChange = (value) => {
@@ -22,6 +28,9 @@ const stylePercentChange = (value) => {
 }
 
 export const updateUserValue = (id, newValue) => {
+    // console.log(id);
+    // console.log(newValue);
     const itemToUpdate = document.querySelector(`[data-rowid="${id}"]`);
-    console.log(itemToUpdate.childNodes.keys);
+    itemToUpdate.querySelector('.input__value').textContent = "$ " + newValue;
+    
 }

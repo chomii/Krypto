@@ -12,13 +12,16 @@ export default class Currency {
     }
 
     setAmount(amount) {
-        this.amount = amount;
-        this.calculateValue();
+        this.amount = parseInt(amount, 10);
+    }
+
+    getUserValue() {
+        return this.userValue;
     }
 
     calculateValue() {
-        if(this.amount > 0) {
-            this.userValue = (this.amount * this.price).toFixed(2);
-        }
+        this.userValue = (this.amount * this.price).toFixed(2);
     }
+
+    
 }

@@ -22,7 +22,39 @@ body {
   color: #ededed;
   display: flex;
   justify-content: center; }
-  .table-box__table {
+  .table-box .table {
     border: #ededed solid 1px;
     border-collapse: collapse;
     width: 90%; }
+    .table-box .table .input {
+      display: flex;
+      flex-direction: column;
+      padding: 5px; }
+      .table-box .table .input__field {
+        box-sizing: border-box;
+        font-size: 1rem;
+        height: 2rem;
+        color: #fff;
+        margin-bottom: 5px;
+        background-color: transparent;
+        border: none;
+        border-bottom: 1px solid #fff;
+        caret-color: #fff; }
+        .table-box .table .input__field::-webkit-inner-spin-button,
+        .table-box .table .input__field ::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0; }
+        .table-box .table .input__field:focus {
+          outline: none; }
+        .table-box .table .input__field::placeholder {
+          color: #fff;
+          text-align: left;
+          text-transform: lowercase; }
+      .table-box .table .input__btn {
+        background-color: #fff;
+        color: #183B8C;
+        border: none;
+        padding: .5rem;
+        border-radius: 3px; }
+        .table-box .table .input__btn:focus {
+          outline: none; }

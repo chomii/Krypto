@@ -35,14 +35,39 @@ import Currency from "./js/model/Currency";
             })
             .catch(e => console.log(e));
 
+
             //rendering currency list
-            state.currencyTable.items.forEach(el => currencyTableView.renderItem(el));
+            state.currencyTable.items.forEach(el => {
             
+                // update amount from local storage
+
+                for(let key in localStorage) {
+                    // console.log(key);
+                    if(parseInt(key,10) === el.id) {
+                        const newAmount = parseInt(localStorage.getItem(key), 10);
+                        state.currencyTable.updateItem(el.id, newAmount);
+                    }
+                }
+                currencyTableView.renderItem(el);
+            });
+            console.log(state.currencyTable.items);
     }
     window.addEventListener('load', fetchDataController);
 
     // input controller
 
+    const handleUserInput = (id, value) => {
+
+          // updating state
+          state.currencyTable.updateItem(id, value);   
+
+          //update view
+          const currentItem = state.currencyTable.getItemForId(id);
+          currencyTableView.updateUserValue(id, currentItem.userValue);
+
+          // save amount to local storage
+          localStorage.setItem(id, value);
+    }
     
     elements.tableBody.addEventListener('click', e => {
 
@@ -50,26 +75,9 @@ import Currency from "./js/model/Currency";
 
             let userInput = parseInt(e.target.previousElementSibling.value, 10);
             let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
-            if(userInput > 0) {
-                // updating state
-                state.currencyTable.updateItem(selectedRowId, userInput);   
-                //update view
-                currencyTableView.updateUserValue(selectedRowId, state.currencyTable.items[selectedRowId - 1].userValue);
-            }
-            // console.log(state.currencyTable.items[selectedRowId - 1]);
+
+            handleUserInput(selectedRowId, userInput);
         }
     });
-    // selectedCurrency = state.currencyTable.items.filter(el => {
-            //     return el.id === selectedRowId;
-            // }, )
-            //selectedCurrency.setAmount(userInput);
-
-
-    // elements.tableBody.addEventListener('keydown', e => {
-    //     if(e.keyCode === 13 || e.which === 13) {
-    //         console.log()
-    //     }
-    // })
-
 
     

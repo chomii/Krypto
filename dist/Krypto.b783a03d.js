@@ -6791,8 +6791,15 @@ var CurrencyTable = function () {
             var newItem = this.items.find(function (el) {
                 return el.id === id;
             });
-            newItem.amount = newAmount;
+            newItem.setAmount(newAmount);
             newItem.calculateValue();
+        }
+    }, {
+        key: "getItemForId",
+        value: function getItemForId(id) {
+            return this.items.find(function (el) {
+                return el.id === id;
+            });
         }
     }]);
 
@@ -6807,7 +6814,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var elements = exports.elements = {
-    tableBody: document.querySelector('.table-box__table--body'),
+    tableBody: document.querySelector('.table__body'),
     input: document.querySelector('.input'),
     inputField: document.querySelector('.input__field'),
     inputValue: document.querySelector('.input__value')
@@ -6823,8 +6830,14 @@ exports.updateUserValue = exports.renderItem = undefined;
 var _base = require('./base');
 
 var renderItem = exports.renderItem = function renderItem(item) {
-    var markup = '\n        <tr data-rowId="' + item.id + '">\n            <td>' + item.name + '</td>\n            <td>' + item.symbol + '</td>\n            <td>' + item.price.toFixed(2) + ' $</td>\n            <td style="color:' + stylePercentChange(item.perc24h) + '">' + item.perc24h.toFixed(2) + ' %</td>\n            <td class="input">\n                <input class="input__field" type="number" name="amount" placeholder="Amount" />\n                <button class="input__btn" type="button">Submit</button>\n            </td>\n            <td class="input__value">' + item.userValue + ' $</td>\n        </tr>\n    ';
+    var markup = '\n        <tr data-rowId="' + item.id + '">\n            <td>' + item.name + '</td>\n            <td>' + item.symbol + '</td>\n            <td>' + item.price.toFixed(2) + ' $</td>\n            <td style="color:' + stylePercentChange(item.perc24h) + '">' + item.perc24h.toFixed(2) + ' %</td>\n            <td class="input">\n                <input class="input__field" type="number" name="amount" placeholder="Amount" />\n                <button class="input__btn" type="button">Submit</button>\n            </td>\n            <td class="input__value">$ ' + item.userValue + '</td>\n        </tr>\n    ';
+
     _base.elements.tableBody.insertAdjacentHTML('beforeend', markup);
+
+    // render amount from local //todo
+    if (item.amount !== 0) {
+        document.querySelector('.input__field').value = item.amount;
+    }
 };
 
 var stylePercentChange = function stylePercentChange(value) {
@@ -6832,8 +6845,10 @@ var stylePercentChange = function stylePercentChange(value) {
 };
 
 var updateUserValue = exports.updateUserValue = function updateUserValue(id, newValue) {
+    // console.log(id);
+    // console.log(newValue);
     var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
-    console.log(itemToUpdate.childNodes.keys);
+    itemToUpdate.querySelector('.input__value').textContent = "$ " + newValue;
 };
 },{"./base":"js/view/base.js"}],"js/model/Currency.js":[function(require,module,exports) {
 "use strict";
@@ -6856,15 +6871,17 @@ var Currency = function () {
     _createClass(Currency, [{
         key: "setAmount",
         value: function setAmount(amount) {
-            this.amount = amount;
-            this.calculateValue();
+            this.amount = parseInt(amount, 10);
+        }
+    }, {
+        key: "getUserValue",
+        value: function getUserValue() {
+            return this.userValue;
         }
     }, {
         key: "calculateValue",
         value: function calculateValue() {
-            if (this.amount > 0) {
-                this.userValue = (this.amount * this.price).toFixed(2);
-            }
+            this.userValue = (this.amount * this.price).toFixed(2);
         }
     }]);
 
@@ -6940,10 +6957,21 @@ var fetchDataController = function () {
 
                         //rendering currency list
                         state.currencyTable.items.forEach(function (el) {
-                            return currencyTableView.renderItem(el);
-                        });
 
-                    case 4:
+                            // update amount from local storage
+
+                            for (var key in localStorage) {
+                                // console.log(key);
+                                if (parseInt(key, 10) === el.id) {
+                                    var newAmount = parseInt(localStorage.getItem(key), 10);
+                                    state.currencyTable.updateItem(el.id, newAmount);
+                                }
+                            }
+                            currencyTableView.renderItem(el);
+                        });
+                        console.log(state.currencyTable.items);
+
+                    case 5:
                     case 'end':
                         return _context.stop();
                 }
@@ -6959,6 +6987,18 @@ window.addEventListener('load', fetchDataController);
 
 // input controller
 
+var handleUserInput = function handleUserInput(id, value) {
+
+    // updating state
+    state.currencyTable.updateItem(id, value);
+
+    //update view
+    var currentItem = state.currencyTable.getItemForId(id);
+    currencyTableView.updateUserValue(id, currentItem.userValue);
+
+    // save amount to local storage
+    localStorage.setItem(id, value);
+};
 
 _base.elements.tableBody.addEventListener('click', function (e) {
 
@@ -6966,26 +7006,10 @@ _base.elements.tableBody.addEventListener('click', function (e) {
 
         var userInput = parseInt(e.target.previousElementSibling.value, 10);
         var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
-        if (userInput > 0) {
-            // updating state
-            state.currencyTable.updateItem(selectedRowId, userInput);
-            //update view
-            currencyTableView.updateUserValue(selectedRowId, state.currencyTable.items[selectedRowId - 1].userValue);
-        }
-        // console.log(state.currencyTable.items[selectedRowId - 1]);
+
+        handleUserInput(selectedRowId, userInput);
     }
 });
-// selectedCurrency = state.currencyTable.items.filter(el => {
-//     return el.id === selectedRowId;
-// }, )
-//selectedCurrency.setAmount(userInput);
-
-
-// elements.tableBody.addEventListener('keydown', e => {
-//     if(e.keyCode === 13 || e.which === 13) {
-//         console.log()
-//     }
-// })
 },{"@babel/polyfill":"node_modules/@babel/polyfill/lib/index.js","./sass/main.scss":"sass/main.scss","./js/model/CurrencyTable":"js/model/CurrencyTable.js","./js/view/currencyTableView":"js/view/currencyTableView.js","./js/view/base":"js/view/base.js","./js/model/Currency":"js/model/Currency.js"}],"../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -7015,7 +7039,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '42575' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '38293' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

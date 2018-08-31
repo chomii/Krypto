@@ -15,8 +15,14 @@ export default class CurrencyTable {
         const newItem = this.items.find(el => {
             return el.id === id
         });
-        newItem.amount = newAmount;
+        newItem.setAmount(newAmount);
         newItem.calculateValue();
+        
     }
+    
+    getItemForId(id) {
+        return this.items.find(el => el.id === id);
+    }
+
     
 }
