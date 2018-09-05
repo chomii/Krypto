@@ -22,15 +22,23 @@ body {
   color: #ededed;
   display: flex;
   justify-content: center; }
+  .table-box .loader {
+    position: absolute;
+    left: 50%;
+    top: 12rem;
+    transform: translateX(-50%);
+    font-size: 1.5rem; }
+  .table-box .table-hidden {
+    display: none; }
   .table-box .table {
     border: #ededed solid 1px;
     border-collapse: collapse;
     width: 90%; }
-    .table-box .table .input {
+    .table-box .table__body .input {
       display: flex;
       flex-direction: column;
       padding: 5px; }
-      .table-box .table .input__field {
+      .table-box .table__body .input__field {
         box-sizing: border-box;
         font-size: 1rem;
         height: 2rem;
@@ -40,21 +48,25 @@ body {
         border: none;
         border-bottom: 1px solid #fff;
         caret-color: #fff; }
-        .table-box .table .input__field::-webkit-inner-spin-button,
-        .table-box .table .input__field ::-webkit-outer-spin-button {
+        .table-box .table__body .input__field::-webkit-inner-spin-button,
+        .table-box .table__body .input__field ::-webkit-outer-spin-button {
           -webkit-appearance: none;
           margin: 0; }
-        .table-box .table .input__field:focus {
+        .table-box .table__body .input__field:focus {
           outline: none; }
-        .table-box .table .input__field::placeholder {
+        .table-box .table__body .input__field::placeholder {
           color: #fff;
           text-align: left;
           text-transform: lowercase; }
-      .table-box .table .input__btn {
+      .table-box .table__body .input__btn {
         background-color: #fff;
         color: #183B8C;
         border: none;
         padding: .5rem;
         border-radius: 3px; }
-        .table-box .table .input__btn:focus {
+        .table-box .table__body .input__btn:focus {
           outline: none; }
+      .table-box .table__body .input .btn--disabled {
+        pointer-events: none;
+        cursor: not-allowed;
+        background-color: #777; }

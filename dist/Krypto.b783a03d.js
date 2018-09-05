@@ -6788,11 +6788,11 @@ var CurrencyTable = function () {
     }, {
         key: "updateItem",
         value: function updateItem(id, newAmount) {
-            var newItem = this.items.find(function (el) {
+
+            var index = this.items.findIndex(function (el) {
                 return el.id === id;
             });
-            newItem.setAmount(newAmount);
-            newItem.calculateValue();
+            this.items[index].setAmount(newAmount);
         }
     }, {
         key: "getItemForId",
@@ -6814,10 +6814,20 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var elements = exports.elements = {
+    tableBox: document.querySelector('.table-box'),
     tableBody: document.querySelector('.table__body'),
+    table: document.querySelector('.table'),
     input: document.querySelector('.input'),
     inputField: document.querySelector('.input__field'),
-    inputValue: document.querySelector('.input__value')
+    inputValue: document.querySelector('.input__value'),
+    loader: document.querySelector('.loader')
+};
+
+var renderLoader = exports.renderLoader = function renderLoader(parent) {
+
+    var loader = '\n        <div class="loader">\n            Loading...\n        </div>\n    ';
+
+    parent.insertAdjacentHTML('afterbegin', loader);
 };
 },{}],"js/view/currencyTableView.js":[function(require,module,exports) {
 'use strict';
@@ -6825,19 +6835,23 @@ var elements = exports.elements = {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.updateUserValue = exports.renderItem = undefined;
+exports.updateUserValue = exports.toggleButtonDisabled = exports.toggleButtonEnabled = exports.renderItem = undefined;
 
 var _base = require('./base');
 
 var renderItem = exports.renderItem = function renderItem(item) {
-    var markup = '\n        <tr data-rowId="' + item.id + '">\n            <td>' + item.name + '</td>\n            <td>' + item.symbol + '</td>\n            <td>' + item.price.toFixed(2) + ' $</td>\n            <td style="color:' + stylePercentChange(item.perc24h) + '">' + item.perc24h.toFixed(2) + ' %</td>\n            <td class="input">\n                <input class="input__field" type="number" name="amount" placeholder="Amount" />\n                <button class="input__btn" type="button">Submit</button>\n            </td>\n            <td class="input__value">$ ' + item.userValue + '</td>\n        </tr>\n    ';
+    var markup = '\n        <tr data-rowId="' + item.id + '">\n            <td>' + item.name + '</td>\n            <td>' + item.symbol + '</td>\n            <td>' + item.price.toFixed(2) + ' $</td>\n            <td style="color:' + stylePercentChange(item.perc24h) + '">' + item.perc24h.toFixed(2) + ' %</td>\n            <td class="input">\n                <input class="input__field" type="number" name="amount" value="' + (item.getAmount() > 0 ? item.getAmount() : '') + '" placeholder="Amount" />\n                <button class="input__btn btn--disabled" type="button" >Submit</button>\n            </td>\n            <td class="input__value">$ ' + item.getUserValue() + '</td>\n        </tr>\n    ';
 
     _base.elements.tableBody.insertAdjacentHTML('beforeend', markup);
-
-    // render amount from local //todo
-    if (item.amount !== 0) {
-        document.querySelector('.input__field').value = item.amount;
-    }
+};
+var toggleButtonEnabled = exports.toggleButtonEnabled = function toggleButtonEnabled(id) {
+    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
+    //console.log(itemToUpdate);
+    itemToUpdate.querySelector('.input__btn').classList.remove('btn--disabled');
+};
+var toggleButtonDisabled = exports.toggleButtonDisabled = function toggleButtonDisabled(id) {
+    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
+    itemToUpdate.querySelector('.input__btn').classList.add('btn--disabled');
 };
 
 var stylePercentChange = function stylePercentChange(value) {
@@ -6866,22 +6880,39 @@ var Currency = function () {
         _classCallCheck(this, Currency);
 
         this.id = id, this.name = name, this.symbol = symbol, this.price = price, this.perc24h = perc24h, this.amount = 0, this.userValue = 0;
+        this.calculateValue();
     }
 
     _createClass(Currency, [{
         key: "setAmount",
         value: function setAmount(amount) {
-            this.amount = parseInt(amount, 10);
+            this.amount = parseFloat(amount);
+            this.calculateValue();
+        }
+    }, {
+        key: "setValue",
+        value: function setValue(value) {
+            this.userValue = parseFloat(value);
+        }
+    }, {
+        key: "getAmount",
+        value: function getAmount() {
+            return parseFloat(this.amount, 10);
         }
     }, {
         key: "getUserValue",
         value: function getUserValue() {
-            return this.userValue;
+            return parseFloat(this.userValue);
         }
     }, {
         key: "calculateValue",
         value: function calculateValue() {
-            this.userValue = (this.amount * this.price).toFixed(2);
+            var newValue = parseFloat(this.amount * this.price).toFixed(2);
+            if (isNaN(newValue)) {
+                this.userValue = 0.0;
+            } else {
+                this.setValue(newValue);
+            }
         }
     }]);
 
@@ -6930,48 +6961,65 @@ var state = {};
 
 var fetchDataController = function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var keys;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-
                         if (!state.currencyTable) {
                             state.currencyTable = new _CurrencyTable2.default();
                         }
-
-                        _context.next = 3;
+                        (0, _base.renderLoader)(_base.elements.tableBox);
+                        _context.next = 4;
                         return fetch('https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
                             headers: { 'X-CMC_PRO_API_KEY': 'c3b07ba3-8c3f-41aa-9f28-3a57c6735a14' }
                         }).then(function (response) {
-                            return response.json();
+                            // ovde handlovati razlicite statuse // todo
+                            if (response.status === 200) {
+                                // clear loader
+                                _base.elements.tableBox.removeChild(document.querySelector('.loader'));
+                                return response.json();
+                            } else {
+                                alert(response.statusText);
+                            }
                         }).then(function (data) {
+                            console.log(data);
                             data.data.forEach(function (el) {
                                 var item = new _Currency2.default(el.id, el.name, el.symbol, el.quote.USD.price, el.quote.USD.percent_change_24h);
                                 state.currencyTable.addItem(item);
+                                // console.log(item);
                             });
+                            _base.elements.table.classList.remove('table-hidden');
                         }).catch(function (e) {
                             return console.log(e);
                         });
 
-                    case 3:
+                    case 4:
+                        keys = JSON.parse(localStorage.getItem('amounts'));
 
-                        //rendering currency list
+
                         state.currencyTable.items.forEach(function (el) {
 
                             // update amount from local storage
-
-                            for (var key in localStorage) {
-                                // console.log(key);
-                                if (parseInt(key, 10) === el.id) {
-                                    var newAmount = parseInt(localStorage.getItem(key), 10);
-                                    state.currencyTable.updateItem(el.id, newAmount);
-                                }
+                            var localAmount = keys.find(function (e) {
+                                return e.id === el.id;
+                            });
+                            if (localAmount !== undefined) {
+                                el.setAmount(localAmount.value);
+                                //console.log(el)
                             }
-                            currencyTableView.renderItem(el);
-                        });
-                        console.log(state.currencyTable.items);
 
-                    case 5:
+                            currencyTableView.renderItem(el);
+
+                            if (localAmount !== undefined) {
+
+                                // enable button
+                                currencyTableView.toggleButtonEnabled(el.id);
+                            }
+                        });
+                        setTimeout(fetchDataController, 60000);
+
+                    case 7:
                     case 'end':
                         return _context.stop();
                 }
@@ -6986,28 +7034,54 @@ var fetchDataController = function () {
 window.addEventListener('load', fetchDataController);
 
 // input controller
-
+var amounts = [];
 var handleUserInput = function handleUserInput(id, value) {
 
     // updating state
-    state.currencyTable.updateItem(id, value);
 
+    state.currencyTable.updateItem(id, value);
     //update view
     var currentItem = state.currencyTable.getItemForId(id);
     currencyTableView.updateUserValue(id, currentItem.userValue);
 
     // save amount to local storage
-    localStorage.setItem(id, value);
-};
+    var amount = {
+        id: id,
+        value: value
+    };
 
+    amounts.push(amount);
+    localStorage.setItem('amounts', JSON.stringify(amounts));
+    //console.log(amounts);
+};
 _base.elements.tableBody.addEventListener('click', function (e) {
 
     if (e.target.classList.contains('input__btn')) {
+        //console.log();
+        var userInput = void 0;
+        if (isNaN(e.target.previousElementSibling.value)) {
+            userInput = '';
+        } else {
+            userInput = parseFloat(e.target.previousElementSibling.value);
+        }
 
-        var userInput = parseInt(e.target.previousElementSibling.value, 10);
         var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+        if (e.target.previousElementSibling.value === '') {
+            currencyTableView.toggleButtonDisabled(selectedRowId);
+        }
 
         handleUserInput(selectedRowId, userInput);
+    }
+});
+_base.elements.tableBody.addEventListener('keyup', function (e) {
+
+    if (e.target.classList.contains('input__field')) {
+
+        var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+        if (e.target.value !== '') {
+            //state.currencyTable.updateItem(selectedRowId, e.target.value);
+            currencyTableView.toggleButtonEnabled(selectedRowId);
+        }
     }
 });
 },{"@babel/polyfill":"node_modules/@babel/polyfill/lib/index.js","./sass/main.scss":"sass/main.scss","./js/model/CurrencyTable":"js/model/CurrencyTable.js","./js/view/currencyTableView":"js/view/currencyTableView.js","./js/view/base":"js/view/base.js","./js/model/Currency":"js/model/Currency.js"}],"../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
@@ -7039,7 +7113,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '38293' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '39097' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

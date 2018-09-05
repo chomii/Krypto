@@ -9,18 +9,32 @@ export default class Currency {
             this.perc24h = perc24h,
             this.amount = 0,
             this.userValue = 0;
+            this.calculateValue();
     }
 
     setAmount(amount) {
-        this.amount = parseInt(amount, 10);
+        this.amount = parseFloat(amount);
+        this.calculateValue();
+    }
+    setValue(value) {
+        this.userValue = parseFloat(value);
+    }
+    getAmount() {
+        return parseFloat(this.amount, 10)
     }
 
     getUserValue() {
-        return this.userValue;
+        return parseFloat(this.userValue);
     }
 
     calculateValue() {
-        this.userValue = (this.amount * this.price).toFixed(2);
+        const newValue = parseFloat(this.amount * this.price).toFixed(2);
+        if(isNaN(newValue)) {
+            this.userValue = 0.0;
+        } else {
+            this.setValue(newValue);
+        }
+         
     }
 
     

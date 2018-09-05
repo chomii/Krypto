@@ -12,12 +12,11 @@ export default class CurrencyTable {
     }
     
     updateItem(id, newAmount) {
-        const newItem = this.items.find(el => {
+
+        const index = this.items.findIndex(el => {
             return el.id === id
         });
-        newItem.setAmount(newAmount);
-        newItem.calculateValue();
-        
+        this.items[index].setAmount(newAmount);
     }
     
     getItemForId(id) {
