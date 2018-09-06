@@ -58,3 +58,47 @@ $breakpoints: (
         'medium': 768px,
         'large': 1024px,
 ) !default;
+
+
+/// Animations
+@keyframes fadeInOpacityFromLeft {
+	0% {
+                transform: translateX(-10rem);
+		opacity: 0;
+	}
+	100% {
+                opacity: 1;
+                transform: translateX(0);
+	}
+}
+@keyframes fadeInOpacity {
+	0% {
+		opacity: 0;
+	}
+	100% {
+                opacity: 1;
+	}
+}
+@keyframes blink {
+        /**
+         * At the start of the animation the dot
+         * has an opacity of .2
+         */
+        0% {
+          opacity: .2;
+        }
+        /**
+         * At 20% the dot is fully visible and
+         * then fades out slowly
+         */
+        20% {
+          opacity: 1;
+        }
+        /**
+         * Until it reaches an opacity of .2 and
+         * the animation can start again
+         */
+        100% {
+          opacity: .2;
+        }
+    }

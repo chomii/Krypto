@@ -1,7 +1,8 @@
 
 
 export default class Currency {
-    constructor(id, name, symbol, price, perc24h) {
+    // el.id, el.name, el.symbol, el.quote.USD.price, el.quote.USD.percent_change_24h
+    constructor({id, name, symbol, quote: {USD: {price, percent_change_24h: perc24h}}}) {
             this.id = id,
             this.name = name,
             this.symbol = symbol,

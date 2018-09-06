@@ -6814,6 +6814,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var elements = exports.elements = {
+    headerText: document.querySelector('.header__text'),
     tableBox: document.querySelector('.table-box'),
     tableBody: document.querySelector('.table__body'),
     table: document.querySelector('.table'),
@@ -6825,9 +6826,17 @@ var elements = exports.elements = {
 
 var renderLoader = exports.renderLoader = function renderLoader(parent) {
 
-    var loader = '\n        <div class="loader">\n            Loading...\n        </div>\n    ';
+    var loader = '\n        <div class="loader">\n            Loading<span>.</span><span>.</span><span>.</span>\n        </div>\n    ';
 
     parent.insertAdjacentHTML('afterbegin', loader);
+};
+var animateRender = exports.animateRender = function animateRender() {
+    elements.table.classList.remove('table-hidden');
+    elements.table.style.animation = 'fadeInOpacity';
+    elements.headerText.style.animation = 'fadeInOpacity';
+    elements.table.style.animationDuration = '2s';
+    elements.headerText.style.animationDuration = '2s';
+    elements.headerText.style.opacity = '1';
 };
 },{}],"js/view/currencyTableView.js":[function(require,module,exports) {
 'use strict';
@@ -6876,7 +6885,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Currency = function () {
-    function Currency(id, name, symbol, price, perc24h) {
+    // el.id, el.name, el.symbol, el.quote.USD.price, el.quote.USD.percent_change_24h
+    function Currency(_ref) {
+        var id = _ref.id,
+            name = _ref.name,
+            symbol = _ref.symbol,
+            _ref$quote$USD = _ref.quote.USD,
+            price = _ref$quote$USD.price,
+            perc24h = _ref$quote$USD.percent_change_24h;
+
         _classCallCheck(this, Currency);
 
         this.id = id, this.name = name, this.symbol = symbol, this.price = price, this.perc24h = perc24h, this.amount = 0, this.userValue = 0;
@@ -6957,69 +6974,88 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var state = {};
 
-// table controller
+if (localStorage.getItem('amounts') !== null && localStorage.getItem('amounts').length > 0) {
+    //console.log('locale storage exists')
+    state.storageAmounts = JSON.parse(localStorage.getItem('amounts'));
+    //console.log(typeof state.storageAmounts)
+} else if (localStorage.getItem('amounts') === null) {
+    //console.log('initialising new storage in state')
+    state.storageAmounts = [];
+}
 
+// fetching data
 var fetchDataController = function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-        var keys;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
+
                         if (!state.currencyTable) {
                             state.currencyTable = new _CurrencyTable2.default();
+                            (0, _base.renderLoader)(_base.elements.tableBox);
                         }
-                        (0, _base.renderLoader)(_base.elements.tableBox);
-                        _context.next = 4;
-                        return fetch('https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest', {
+
+                        _context.next = 3;
+                        return fetch('https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10', {
                             headers: { 'X-CMC_PRO_API_KEY': 'c3b07ba3-8c3f-41aa-9f28-3a57c6735a14' }
                         }).then(function (response) {
                             // ovde handlovati razlicite statuse // todo
                             if (response.status === 200) {
                                 // clear loader
-                                _base.elements.tableBox.removeChild(document.querySelector('.loader'));
+                                // check if loader exists before removing it // todo
+                                var checkLoaderArray = Array.from(_base.elements.tableBox.childNodes);
+                                //console.log(checkLoaderArray)
+                                var _iteratorNormalCompletion = true;
+                                var _didIteratorError = false;
+                                var _iteratorError = undefined;
+
+                                try {
+                                    for (var _iterator = checkLoaderArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                        var i = _step.value;
+
+                                        if (i.classList !== undefined && i.classList.contains('loader')) {
+                                            //console.log(i.classList.contains('loader'))
+                                            _base.elements.tableBox.removeChild(document.querySelector('.loader'));
+                                        }
+                                    }
+                                } catch (err) {
+                                    _didIteratorError = true;
+                                    _iteratorError = err;
+                                } finally {
+                                    try {
+                                        if (!_iteratorNormalCompletion && _iterator.return) {
+                                            _iterator.return();
+                                        }
+                                    } finally {
+                                        if (_didIteratorError) {
+                                            throw _iteratorError;
+                                        }
+                                    }
+                                }
+
                                 return response.json();
                             } else {
                                 alert(response.statusText);
                             }
                         }).then(function (data) {
-                            console.log(data);
                             data.data.forEach(function (el) {
-                                var item = new _Currency2.default(el.id, el.name, el.symbol, el.quote.USD.price, el.quote.USD.percent_change_24h);
+                                var item = new _Currency2.default(el);
                                 state.currencyTable.addItem(item);
-                                // console.log(item);
                             });
-                            _base.elements.table.classList.remove('table-hidden');
+                            // show header and table
+                            (0, _base.animateRender)();
                         }).catch(function (e) {
                             return console.log(e);
                         });
 
-                    case 4:
-                        keys = JSON.parse(localStorage.getItem('amounts'));
+                    case 3:
 
+                        tableController();
 
-                        state.currencyTable.items.forEach(function (el) {
-
-                            // update amount from local storage
-                            var localAmount = keys.find(function (e) {
-                                return e.id === el.id;
-                            });
-                            if (localAmount !== undefined) {
-                                el.setAmount(localAmount.value);
-                                //console.log(el)
-                            }
-
-                            currencyTableView.renderItem(el);
-
-                            if (localAmount !== undefined) {
-
-                                // enable button
-                                currencyTableView.toggleButtonEnabled(el.id);
-                            }
-                        });
                         setTimeout(fetchDataController, 60000);
 
-                    case 7:
+                    case 5:
                     case 'end':
                         return _context.stop();
                 }
@@ -7033,8 +7069,42 @@ var fetchDataController = function () {
 }();
 window.addEventListener('load', fetchDataController);
 
+var user = {
+    username: 'coa'
+};
+
+// populating table
+
+var tableController = function tableController() {
+
+    state.currencyTable.items.forEach(function (el) {
+
+        if (state.storageAmounts && state.storageAmounts.length > 0) {
+            // update amount from local storage if local storage exsists
+            var localAmount = state.storageAmounts.find(function (e) {
+                return e.id === el.id;
+            });
+            //console.log(localAmount);
+            if (localAmount !== undefined) {
+                el.setAmount(localAmount.value);
+            }
+
+            currencyTableView.renderItem(el);
+
+            if (localAmount !== undefined) {
+                // enable button
+                currencyTableView.toggleButtonEnabled(el.id);
+            }
+        } else {
+            //console.log('empty local storage')
+            currencyTableView.renderItem(el);
+            currencyTableView.toggleButtonDisabled(el.id);
+        }
+    });
+};
+
 // input controller
-var amounts = [];
+
 var handleUserInput = function handleUserInput(id, value) {
 
     // updating state
@@ -7045,19 +7115,46 @@ var handleUserInput = function handleUserInput(id, value) {
     currencyTableView.updateUserValue(id, currentItem.userValue);
 
     // save amount to local storage
-    var amount = {
-        id: id,
-        value: value
-    };
-
-    amounts.push(amount);
-    localStorage.setItem('amounts', JSON.stringify(amounts));
-    //console.log(amounts);
+    handleLocalStorage(id, value);
 };
+
+var handleLocalStorage = function handleLocalStorage(id, value) {
+
+    // 1. check if element with that id exsists in localStorage
+    // 2. if exsists then update new value
+    // 3. if value is '' or 0 or null then remove it from localStorage
+
+    var newStorageAmounts = state.storageAmounts;
+
+    if (newStorageAmounts.length > 0) {
+
+        var indexToUpdate = newStorageAmounts.findIndex(function (el) {
+            return el.id === id;
+        });
+
+        if (indexToUpdate !== -1) {
+
+            if (value === 0 || value === '' || value === null || isNaN(value)) {
+                newStorageAmounts.splice(indexToUpdate, 1);
+            } else {
+                newStorageAmounts[indexToUpdate].value = value;
+            }
+        } else {
+            newStorageAmounts.push({ id: id, value: value });
+        }
+    } else {
+        newStorageAmounts.push({ id: id, value: value });
+    }
+
+    localStorage.setItem('amounts', JSON.stringify(newStorageAmounts));
+};
+
+//handling onButtonClick through event delegation
+
 _base.elements.tableBody.addEventListener('click', function (e) {
 
     if (e.target.classList.contains('input__btn')) {
-        //console.log();
+
         var userInput = void 0;
         if (isNaN(e.target.previousElementSibling.value)) {
             userInput = '';
@@ -7073,6 +7170,8 @@ _base.elements.tableBody.addEventListener('click', function (e) {
         handleUserInput(selectedRowId, userInput);
     }
 });
+
+// picking up info weather input field is empty
 _base.elements.tableBody.addEventListener('keyup', function (e) {
 
     if (e.target.classList.contains('input__field')) {
@@ -7113,7 +7212,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '39097' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '36773' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

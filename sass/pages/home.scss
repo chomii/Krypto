@@ -11,14 +11,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 0;
+  padding: 3rem 0;
 
   &__text {
     color: $light-grey;
+    opacity: 0;
     text-transform: uppercase;
-    font-size: 3.5rem;
+    font-size: 5rem;
     letter-spacing: 1rem;
-    font-weight: 200;
+    font-weight: 100;
   }
 }
 .table-box {
@@ -26,13 +27,54 @@ body {
   color: $light-grey;
   display: flex;
   justify-content: center;
+  position: relative;
 
   .loader {
     position: absolute;
     left: 50%;
     top: 12rem;
     transform: translateX(-50%);
-    font-size: 1.5rem;
+    font-size: 3rem;
+
+    span {
+            /**
+      * Use the blink animation, which is defined above
+      */
+      animation-name: blink;
+      /**
+      * The animation should take 1.4 seconds
+      */
+      animation-duration: 1.5s;
+      /**
+      * It will repeat itself forever
+      */
+      animation-iteration-count: infinite;
+      /**
+      * This makes sure that the starting style (opacity: .2)
+      * of the animation is applied before the animation starts.
+      * Otherwise we would see a short flash or would have
+      * to set the default styling of the dots to the same
+      * as the animation. Same applies for the ending styles.
+      */
+      animation-fill-mode: both;
+
+      &span:nth-child(2) {
+        /**
+         * Starts the animation of the third dot
+         * with a delay of .2s, otherwise all dots
+         * would animate at the same time
+         */
+        animation-delay: .15s;
+      }
+      &span:nth-child(3) {
+        /**
+         * Starts the animation of the third dot
+         * with a delay of .4s, otherwise all dots
+         * would animate at the same time
+         */
+        animation-delay: .3s;
+      }
+    }
   }
 
   .table-hidden {
@@ -43,9 +85,22 @@ body {
     border: $light-grey solid 1px;
     border-collapse: collapse;
     width: 90%;
+    margin-bottom: 3rem;
+
+    &__head {
+      tr {
+        th {
+          padding: 2rem;
+          border-bottom: 1px solid #fff; 
+        }
+      }
+    }
 
     &__body {
 
+      tr:nth-child(2n) {
+        background-color: rgba(#fff, $alpha: 0.2)
+      }
       .input {
         display: flex;
         flex-direction: column;
