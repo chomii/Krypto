@@ -6786,6 +6786,11 @@ var CurrencyTable = function () {
             return item;
         }
     }, {
+        key: "setItems",
+        value: function setItems(items) {
+            this.items = items;
+        }
+    }, {
         key: "updateItem",
         value: function updateItem(id, newAmount) {
 
@@ -6807,73 +6812,7 @@ var CurrencyTable = function () {
 }();
 
 exports.default = CurrencyTable;
-},{}],"js/view/base.js":[function(require,module,exports) {
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-var elements = exports.elements = {
-    headerText: document.querySelector('.header__text'),
-    tableBox: document.querySelector('.table-box'),
-    tableBody: document.querySelector('.table__body'),
-    table: document.querySelector('.table'),
-    input: document.querySelector('.input'),
-    inputField: document.querySelector('.input__field'),
-    inputValue: document.querySelector('.input__value'),
-    loader: document.querySelector('.loader')
-};
-
-var renderLoader = exports.renderLoader = function renderLoader(parent) {
-
-    var loader = '\n        <div class="loader">\n            Loading<span>.</span><span>.</span><span>.</span>\n        </div>\n    ';
-
-    parent.insertAdjacentHTML('afterbegin', loader);
-};
-var animateRender = exports.animateRender = function animateRender() {
-    elements.table.classList.remove('table-hidden');
-    elements.table.style.animation = 'fadeInOpacity';
-    elements.headerText.style.animation = 'fadeInOpacity';
-    elements.table.style.animationDuration = '2s';
-    elements.headerText.style.animationDuration = '2s';
-    elements.headerText.style.opacity = '1';
-};
-},{}],"js/view/currencyTableView.js":[function(require,module,exports) {
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.updateUserValue = exports.toggleButtonDisabled = exports.toggleButtonEnabled = exports.renderItem = undefined;
-
-var _base = require('./base');
-
-var renderItem = exports.renderItem = function renderItem(item) {
-    var markup = '\n        <tr data-rowId="' + item.id + '">\n            <td>' + item.name + '</td>\n            <td>' + item.symbol + '</td>\n            <td>' + item.price.toFixed(2) + ' $</td>\n            <td style="color:' + stylePercentChange(item.perc24h) + '">' + item.perc24h.toFixed(2) + ' %</td>\n            <td class="input">\n                <input class="input__field" type="number" name="amount" value="' + (item.getAmount() > 0 ? item.getAmount() : '') + '" placeholder="Amount" />\n                <button class="input__btn btn--disabled" type="button" >Submit</button>\n            </td>\n            <td class="input__value">$ ' + item.getUserValue() + '</td>\n        </tr>\n    ';
-
-    _base.elements.tableBody.insertAdjacentHTML('beforeend', markup);
-};
-var toggleButtonEnabled = exports.toggleButtonEnabled = function toggleButtonEnabled(id) {
-    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
-    //console.log(itemToUpdate);
-    itemToUpdate.querySelector('.input__btn').classList.remove('btn--disabled');
-};
-var toggleButtonDisabled = exports.toggleButtonDisabled = function toggleButtonDisabled(id) {
-    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
-    itemToUpdate.querySelector('.input__btn').classList.add('btn--disabled');
-};
-
-var stylePercentChange = function stylePercentChange(value) {
-    return value > 0 ? "green" : "red";
-};
-
-var updateUserValue = exports.updateUserValue = function updateUserValue(id, newValue) {
-    // console.log(id);
-    // console.log(newValue);
-    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
-    itemToUpdate.querySelector('.input__value').textContent = "$ " + newValue;
-};
-},{"./base":"js/view/base.js"}],"js/model/Currency.js":[function(require,module,exports) {
+},{}],"js/model/Currency.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6886,6 +6825,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Currency = function () {
     // el.id, el.name, el.symbol, el.quote.USD.price, el.quote.USD.percent_change_24h
+    // {id, name, symbol, quote: {USD: {price, percent_change_24h: perc24h}}}
     function Currency(_ref) {
         var id = _ref.id,
             name = _ref.name,
@@ -6937,6 +6877,258 @@ var Currency = function () {
 }();
 
 exports.default = Currency;
+},{}],"js/view/base.js":[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+// class EventHandler {
+
+//     constructor() {
+//         this.events = {};
+
+//         const observer = new MutationObserver((event) => {
+
+//             Object.keys(this.events).forEach((selector) => {
+//                 const elements = document.querySelectorAll(selector);
+
+//                 if (!elements || !elements.length) {
+//                     return;
+//                 }
+
+//                 Object.keys(this.events[selector]).forEach((event) => {
+
+//                     this.events[selector][event].forEach((handler) => {
+
+//                         elements.forEach((element) => {
+//                             element.addEventListener(event, handler);
+//                         });
+//                     });
+//                 });
+//             });
+//         });
+
+//         observer.observe(document.querySelector('body'),  { attributes: true, childList: true, subtree: true });
+//     }
+
+//     on(selector, event, handler) {
+
+//         if (typeof this.events[selector] === 'undefined') {
+//             this.events[selector] = {};
+//         }
+
+//         if (false === this.events[selector][event] instanceof Array) {
+//             this.events[selector][event] = [];
+//         }
+
+//         if (typeof handler === 'function') {
+//             this.events[selector][event].push(handler);
+//         }
+//     }
+// }
+
+// let e = new EventHandler();
+
+// e.on('.input__btn', 'click', (e) => {
+//     e.preventDefault();
+
+//     console.log('test');
+// });
+
+var _elements = {};
+
+window.onload = function () {
+    _elements = {
+        headerText: document.querySelector('.header__text'),
+        contentBox: document.querySelector('.content-box'),
+        tableBody: document.querySelector('.table__body'),
+        table: document.querySelector('.table'),
+        input: document.querySelector('.input'),
+        inputField: document.querySelector('.input__field'),
+        inputValue: document.querySelector('.input__value'),
+        loader: document.querySelector('.loader'),
+        paginationBox: document.querySelector('.pagination')
+    };
+};
+
+var elements = exports.elements = {
+    get headerText() {
+        return _elements.headerText || document.querySelector('.header__text');
+    },
+    get contentBox() {
+        return _elements.contentBox || document.querySelector('.content-box');
+    },
+    get tableBody() {
+        return _elements.tableBody || document.querySelector('.table__body');
+    },
+    get table() {
+        return _elements.table || document.querySelector('.table');
+    },
+    get input() {
+        return _elements.input || document.querySelector('.input');
+    },
+    get inputField() {
+        return _elements.inputField || document.querySelector('.input__field');
+    },
+    get inputValue() {
+        return _elements.inputValue || document.querySelector('.input__value');
+    },
+    get loader() {
+        return _elements.loader || document.querySelector('.loader');
+    },
+    get paginationBox() {
+        return _elements.paginationBox || document.querySelector('.pagination');
+    }
+};
+
+var renderLoader = exports.renderLoader = function renderLoader(parent) {
+
+    var loader = '\n        <div class="loader">\n            Loading<span>.</span><span>.</span><span>.</span>\n        </div>\n    ';
+
+    parent.insertAdjacentHTML('afterbegin', loader);
+};
+var animateRender = exports.animateRender = function animateRender() {
+    elements.table.classList.remove('hidden');
+    elements.paginationBox.classList.remove('hidden');
+    elements.table.style.animation = 'fadeInOpacity';
+    elements.headerText.style.animation = 'fadeInOpacity';
+    elements.table.style.animationDuration = '2s';
+    elements.headerText.style.animationDuration = '2s';
+    elements.headerText.style.opacity = '1';
+};
+
+var clearTable = exports.clearTable = function clearTable() {
+    elements.table.classList.add('hidden');
+    elements.paginationBox.classList.add('hidden');
+    elements.tableBody.innerHTML = '';
+    elements.paginationBox.innerHTML = '';
+};
+
+var clearElementContent = exports.clearElementContent = function clearElementContent(element) {
+    element.innerHTML = '';
+};
+},{}],"js/view/currencyrRowView.js":[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.updateUserValue = exports.toggleButtonDisabled = exports.toggleButtonEnabled = exports.renderItem = undefined;
+
+var _base = require('./base');
+
+var renderItem = exports.renderItem = function renderItem(item) {
+    var markup = '\n        <tr data-rowId="' + item.id + '">\n            <td class="curr-name">' + item.name + '</td>\n            <td>' + item.symbol + '</td>\n            <td>' + item.price.toFixed(2) + ' $</td>\n            <td style="color:' + stylePercentChange(item.perc24h) + '">' + item.perc24h.toFixed(2) + ' %</td>\n            <td class="input">\n                <input class="input__field" type="number" name="amount" value="' + (item.getAmount() > 0 ? item.getAmount() : '') + '" placeholder="Amount" />\n                <button class="input__btn btn--disabled" type="button" >Submit</button>\n            </td>\n            <td class="input__value">$ ' + item.getUserValue() + '</td>\n        </tr>\n    ';
+    //console.log(item.id)
+
+    _base.elements.tableBody.insertAdjacentHTML('beforeend', markup);
+};
+var toggleButtonEnabled = exports.toggleButtonEnabled = function toggleButtonEnabled(id) {
+    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
+    if (itemToUpdate) {
+        itemToUpdate.querySelector('.input__btn').classList.remove('btn--disabled');
+    }
+};
+var toggleButtonDisabled = exports.toggleButtonDisabled = function toggleButtonDisabled(id) {
+    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
+    itemToUpdate.querySelector('.input__btn').classList.add('btn--disabled');
+};
+
+var stylePercentChange = function stylePercentChange(value) {
+    return value > 0 ? "green" : "red";
+};
+
+var updateUserValue = exports.updateUserValue = function updateUserValue(id, newValue) {
+    // console.log(id);
+    // console.log(newValue);
+    var itemToUpdate = document.querySelector('[data-rowid="' + id + '"]');
+    itemToUpdate.querySelector('.input__value').textContent = "$ " + newValue;
+};
+},{"./base":"js/view/base.js"}],"js/view/currencyTableView.js":[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var renderTable = exports.renderTable = function renderTable(parent) {
+    var markup = '\n        <table class="table hidden">\n            <thead class="table__head">\n                <tr>\n                    <th>Name</th>\n                    <th>Symbol</th>\n                    <th>$ Price</th>\n                    <th>% Last 24h</th>\n                    <th>Amount you own</th>\n                    <th>$ Value of your coin</th>\n                </tr>\n            </thead>\n            <tbody class="table__body">\n                \n            </tbody>\n        </table>\n        <div class="pagination hidden"></div>\n    ';
+
+    parent.insertAdjacentHTML('afterbegin', markup);
+};
+},{}],"js/view/currencyDetailsView.js":[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.renderDetails = undefined;
+
+var _base = require('./base');
+
+var renderDetails = exports.renderDetails = function renderDetails(currency, parent) {
+    var markup = '\n        <div class="details">\n            <h1>Name: ' + currency.name + '</h1>\n            <h2>Symbol: ' + currency.symbol + '</h2>\n            <h3>Price: ' + currency.price + '</h3>\n        </div>\n    ';
+    parent.insertAdjacentHTML('afterbegin', markup);
+};
+},{"./base":"js/view/base.js"}],"js/view/paginationView.js":[function(require,module,exports) {
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.renderPagination = undefined;
+
+var _base = require('./base');
+
+var renderPagination = exports.renderPagination = function renderPagination(page) {
+    var markup = '\n        <a href="#">' + page + '</a>\n    ';
+    _base.elements.paginationBox.insertAdjacentHTML('beforeend', markup);
+};
+},{"./base":"js/view/base.js"}],"js/LocalStorageHelper.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LocalStorageHelper = function () {
+    function LocalStorageHelper() {
+        _classCallCheck(this, LocalStorageHelper);
+
+        this.storage = {};
+    }
+
+    _createClass(LocalStorageHelper, [{
+        key: "getStorage",
+        value: function getStorage(name) {
+            this.storage = JSON.parse(localStorage.getItem(name));
+            return this.storage;
+        }
+    }, {
+        key: "addToStorage",
+        value: function addToStorage(name, data) {
+            //console.log(name)
+            var dataToSave = [];
+            dataToSave.push(data);
+            localStorage.setItem(name, JSON.stringify(dataToSave));
+            //console.log(this.storage)
+        }
+    }, {
+        key: "getItemFromStorage",
+        value: function getItemFromStorage(name) {}
+    }, {
+        key: "deleteItemFromStorage",
+        value: function deleteItemFromStorage(name) {}
+    }]);
+
+    return LocalStorageHelper;
+}();
+
+exports.default = LocalStorageHelper;
 },{}],"index.js":[function(require,module,exports) {
 'use strict';
 
@@ -6950,15 +7142,31 @@ var _CurrencyTable = require('./js/model/CurrencyTable');
 
 var _CurrencyTable2 = _interopRequireDefault(_CurrencyTable);
 
+var _Currency = require('./js/model/Currency');
+
+var _Currency2 = _interopRequireDefault(_Currency);
+
+var _currencyrRowView = require('./js/view/currencyrRowView');
+
+var currencyRowView = _interopRequireWildcard(_currencyrRowView);
+
 var _currencyTableView = require('./js/view/currencyTableView');
 
 var currencyTableView = _interopRequireWildcard(_currencyTableView);
 
+var _currencyDetailsView = require('./js/view/currencyDetailsView');
+
+var currencyDetailsView = _interopRequireWildcard(_currencyDetailsView);
+
+var _paginationView = require('./js/view/paginationView');
+
+var paginationView = _interopRequireWildcard(_paginationView);
+
 var _base = require('./js/view/base');
 
-var _Currency = require('./js/model/Currency');
+var _LocalStorageHelper = require('./js/LocalStorageHelper');
 
-var _Currency2 = _interopRequireDefault(_Currency);
+var _LocalStorageHelper2 = _interopRequireDefault(_LocalStorageHelper);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -6966,46 +7174,156 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-// API BASE URL: https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?
+// API BASE URL: https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10
 // API KEY: c3b07ba3-8c3f-41aa-9f28-3a57c6735a14
 
 
-// state of the currency table
-
 var state = {};
 
-if (localStorage.getItem('amounts') !== null && localStorage.getItem('amounts').length > 0) {
-    //console.log('locale storage exists')
-    state.storageAmounts = JSON.parse(localStorage.getItem('amounts'));
-    //console.log(typeof state.storageAmounts)
-} else if (localStorage.getItem('amounts') === null) {
-    //console.log('initialising new storage in state')
-    state.storageAmounts = [];
-}
+// ROUTER //
 
-// fetching data
+// const root = null;
+// const useHash = true; // Defaults to: false
+// const hash = '#'; // Defaults to: '#'
+// const router = new Navigo(root, useHash, hash);
+
+// router
+// .on(() => {
+//     //fetch data from api to state
+//     // remove previous component if exsists
+//     // render table component in content box
+
+//     currencyTableView.renderTable(elements.contentBox);
+
+// })
+// .on({
+//     '/:id': (args) => {
+//         // remove previous component
+//         elements.contentBox.inerHTML = '';
+//         renderLoader(elements.contentBox);
+//         // render details for id
+//     }
+// })
+// .resolve();
+
+//-----------------------------------------------//
+
+// ROUTER //
+window.addEventListener('hashchange', function (e) {
+    return onRouteChange(e);
+});
+
+var onRouteChange = function onRouteChange(event) {
+    //console.log(event)
+    var hash = window.location.hash.substring(1);
+    //console.log(hash)
+    (0, _base.clearElementContent)(_base.elements.contentBox);
+    loadContent(hash);
+};
+
+var loadContent = function loadContent(urlHash) {
+    if (urlHash === '' || urlHash === '/') {
+        //show table component
+        currencyTableView.renderTable(_base.elements.contentBox);
+        if (state.currencyTable) {
+            //console.log('items list exsists');
+            _base.elements.table.classList.remove('hidden');
+            tableController();
+            //console.log(state.currencyTable.items)
+        } else {
+            fetchDataController();
+        }
+    } else {
+        //get state from localStorage
+        //show details component
+        // elements.contentBox.innerHTML = '';
+        currencyDetailsHandler(urlHash);
+        //console.log(parseInt(urlHash) + ' from details load');
+    }
+};
+window.addEventListener('load', function (e) {
+    // const lastState = JSON.parse(localStorage.getItem('lastState')).lastState;
+    // console.log(lastState)
+    // state.currencyTable = lastState.currencyTable;
+    // state.storageAmounts = lastState.storageAmounts;
+    // console.log(state)
+    fromStorage();
+    var url = window.location.hash;
+    //console.log(url);
+    loadContent(url);
+});
+// GETTING USER CURRENCY AMOUNTS FROM LOCAL STORAGE //
+
+var fromStorage = function fromStorage() {
+    if (localStorage.getItem('amounts') !== null && localStorage.getItem('amounts').length > 0) {
+
+        state.storageAmounts = JSON.parse(localStorage.getItem('amounts'));
+
+        // console.log(state.storageAmounts)
+        // console.log(typeof state.storageAmounts)
+    } else if (localStorage.getItem('amounts') === null) {
+        //console.log('initialising new storage in state')
+        state.storageAmounts = [];
+    }
+};
+
+//-----------------------------------------------//
+
+// PAGINATION //
+
+var insertPagination = function insertPagination(numOfPages) {
+    for (var i = 1; i <= numOfPages; i++) {
+        paginationView.renderPagination(i);
+    }
+
+    console.log(_base.elements);
+    console.log('ovo', _base.elements.paginationBox);
+
+    _base.elements.paginationBox.addEventListener('click', function (e) {
+        //console.log(e.target.text);
+        (0, _base.clearTable)();
+        var page = (parseInt(e.target.text) - 1) * 10 + 1;
+        (0, _base.renderLoader)(_base.elements.contentBox);
+        fetchDataController(page);
+        // console.log(state.currencyTable.items);
+    });
+};
+
+//-----------------------------------------------//
+
+
+// FETCH DATA //
+
+//todo // check why function expects event as first argument
+
 var fetchDataController = function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+        var itemsPerPage = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
+        var url;
         return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
+                        url = 'https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=' + page + '&limit=' + itemsPerPage;
+
 
                         if (!state.currencyTable) {
                             state.currencyTable = new _CurrencyTable2.default();
-                            (0, _base.renderLoader)(_base.elements.tableBox);
+                            (0, _base.renderLoader)(_base.elements.contentBox);
+                        } else {
+                            state.currencyTable.items = [];
                         }
 
-                        _context.next = 3;
-                        return fetch('https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10', {
+                        _context.next = 4;
+                        return fetch(url, {
                             headers: { 'X-CMC_PRO_API_KEY': 'c3b07ba3-8c3f-41aa-9f28-3a57c6735a14' }
                         }).then(function (response) {
                             // ovde handlovati razlicite statuse // todo
                             if (response.status === 200) {
                                 // clear loader
                                 // check if loader exists before removing it // todo
-                                var checkLoaderArray = Array.from(_base.elements.tableBox.childNodes);
-                                //console.log(checkLoaderArray)
+                                var checkLoaderArray = Array.from(_base.elements.contentBox.childNodes);
                                 var _iteratorNormalCompletion = true;
                                 var _didIteratorError = false;
                                 var _iteratorError = undefined;
@@ -7015,8 +7333,7 @@ var fetchDataController = function () {
                                         var i = _step.value;
 
                                         if (i.classList !== undefined && i.classList.contains('loader')) {
-                                            //console.log(i.classList.contains('loader'))
-                                            _base.elements.tableBox.removeChild(document.querySelector('.loader'));
+                                            _base.elements.contentBox.removeChild(document.querySelector('.loader'));
                                         }
                                     }
                                 } catch (err) {
@@ -7044,15 +7361,12 @@ var fetchDataController = function () {
                                 state.currencyTable.addItem(item);
                             });
                             // show header and table
-                            (0, _base.animateRender)();
+                            tableController();
                         }).catch(function (e) {
                             return console.log(e);
                         });
 
-                    case 3:
-
-                        tableController();
-
+                    case 4:
                         setTimeout(fetchDataController, 60000);
 
                     case 5:
@@ -7067,40 +7381,46 @@ var fetchDataController = function () {
         return _ref.apply(this, arguments);
     };
 }();
-window.addEventListener('load', fetchDataController);
 
-var user = {
-    username: 'coa'
-};
+//-----------------------------------------------//
 
-// populating table
+//window.addEventListener('load', fetchDataController);
+
+// FILLING THE TABLE VIEW //
 
 var tableController = function tableController() {
 
     state.currencyTable.items.forEach(function (el) {
-
+        //console.log(state.storageAmounts);
         if (state.storageAmounts && state.storageAmounts.length > 0) {
             // update amount from local storage if local storage exsists
+            //console.log('unutra')
             var localAmount = state.storageAmounts.find(function (e) {
-                return e.id === el.id;
+                if (e.id === el.id) {
+                    return e.id === el.id;
+                }
             });
             //console.log(localAmount);
             if (localAmount !== undefined) {
                 el.setAmount(localAmount.value);
             }
-
-            currencyTableView.renderItem(el);
+            //console.log(el);
+            currencyRowView.renderItem(el);
 
             if (localAmount !== undefined) {
                 // enable button
-                currencyTableView.toggleButtonEnabled(el.id);
+                //console.log(el.id);
+                currencyRowView.toggleButtonEnabled(el.id);
             }
         } else {
             //console.log('empty local storage')
-            currencyTableView.renderItem(el);
-            currencyTableView.toggleButtonDisabled(el.id);
+            currencyRowView.renderItem(el);
+            currencyRowView.toggleButtonDisabled(el.id);
         }
     });
+    userValueBtnHandler();
+    userInputFieldHandler();
+    (0, _base.animateRender)();
 };
 
 // input controller
@@ -7108,11 +7428,10 @@ var tableController = function tableController() {
 var handleUserInput = function handleUserInput(id, value) {
 
     // updating state
-
     state.currencyTable.updateItem(id, value);
     //update view
     var currentItem = state.currencyTable.getItemForId(id);
-    currencyTableView.updateUserValue(id, currentItem.userValue);
+    currencyRowView.updateUserValue(id, currentItem.userValue);
 
     // save amount to local storage
     handleLocalStorage(id, value);
@@ -7150,40 +7469,76 @@ var handleLocalStorage = function handleLocalStorage(id, value) {
 };
 
 //handling onButtonClick through event delegation
+var userValueBtnHandler = function userValueBtnHandler() {
+    _base.elements.tableBody.addEventListener('click', function (e) {
 
-_base.elements.tableBody.addEventListener('click', function (e) {
+        if (e.target.classList.contains('input__btn')) {
 
-    if (e.target.classList.contains('input__btn')) {
+            var userInput = void 0;
+            if (isNaN(e.target.previousElementSibling.value)) {
+                userInput = '';
+            } else {
+                userInput = parseFloat(e.target.previousElementSibling.value);
+            }
 
-        var userInput = void 0;
-        if (isNaN(e.target.previousElementSibling.value)) {
-            userInput = '';
-        } else {
-            userInput = parseFloat(e.target.previousElementSibling.value);
+            var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+            if (e.target.previousElementSibling.value === '') {
+                currencyRowView.toggleButtonDisabled(selectedRowId);
+            }
+
+            handleUserInput(selectedRowId, userInput);
         }
-
-        var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
-        if (e.target.previousElementSibling.value === '') {
-            currencyTableView.toggleButtonDisabled(selectedRowId);
-        }
-
-        handleUserInput(selectedRowId, userInput);
-    }
-});
+    });
+};
 
 // picking up info weather input field is empty
-_base.elements.tableBody.addEventListener('keyup', function (e) {
+var userInputFieldHandler = function userInputFieldHandler() {
+    _base.elements.tableBody.addEventListener('keyup', function (e) {
 
-    if (e.target.classList.contains('input__field')) {
+        if (e.target.classList.contains('input__field')) {
 
-        var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
-        if (e.target.value !== '') {
-            //state.currencyTable.updateItem(selectedRowId, e.target.value);
-            currencyTableView.toggleButtonEnabled(selectedRowId);
+            var selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+            if (e.target.value !== '') {
+                //state.currencyTable.updateItem(selectedRowId, e.target.value);
+                currencyRowView.toggleButtonEnabled(selectedRowId);
+            }
         }
+    });
+};
+
+// ON CURRENCY ROW CLICK HANDLER //
+
+var currencyDetailsHandler = function currencyDetailsHandler(id) {
+    // clear container
+    _base.elements.contentBox.innerHTML = '';
+    // console.log(id)
+    // console.log(typeof id)
+    // get data from state
+    var element = state.currencyTable.items.find(function (el) {
+        return el.id === parseInt(id);
+    });
+    // const stateToSave = {lastState:state};
+    // console.log(stateToSave);
+
+    // localStorage.setItem('lastState', JSON.stringify(stateToSave));
+    // console.log(element)
+    // console.log(elements.tableBody)
+    // render details element
+    currencyDetailsView.renderDetails(element, _base.elements.contentBox);
+};
+
+document.addEventListener('click', function (e) {
+
+    if (e.target.classList.contains('curr-name')) {
+        var selectedCurrId = parseInt(e.target.parentElement.dataset.rowid, 10);
+        window.location.hash = selectedCurrId;
     }
 });
-},{"@babel/polyfill":"node_modules/@babel/polyfill/lib/index.js","./sass/main.scss":"sass/main.scss","./js/model/CurrencyTable":"js/model/CurrencyTable.js","./js/view/currencyTableView":"js/view/currencyTableView.js","./js/view/base":"js/view/base.js","./js/model/Currency":"js/model/Currency.js"}],"../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+
+// const storage = new LocalStorageHelper();
+// storage.getStorage();
+//console.log(storage);
+},{"@babel/polyfill":"node_modules/@babel/polyfill/lib/index.js","./sass/main.scss":"sass/main.scss","./js/model/CurrencyTable":"js/model/CurrencyTable.js","./js/model/Currency":"js/model/Currency.js","./js/view/currencyrRowView":"js/view/currencyrRowView.js","./js/view/currencyTableView":"js/view/currencyTableView.js","./js/view/currencyDetailsView":"js/view/currencyDetailsView.js","./js/view/paginationView":"js/view/paginationView.js","./js/view/base":"js/view/base.js","./js/LocalStorageHelper":"js/LocalStorageHelper.js"}],"../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -7212,7 +7567,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '36773' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '42201' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

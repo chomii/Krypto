@@ -2,107 +2,221 @@ import "@babel/polyfill";
 import './sass/main.scss';
 
 import CurrencyTable from './js/model/CurrencyTable';
-import * as currencyTableView from './js/view/currencyTableView';
-import { elements, renderLoader, animateRender } from './js/view/base';
 import Currency from "./js/model/Currency";
+import * as currencyRowView from './js/view/currencyrRowView';
+import * as currencyTableView from './js/view/currencyTableView';
+import * as currencyDetailsView from './js/view/currencyDetailsView';
+import * as paginationView from './js/view/paginationView';
+import { elements, renderLoader, animateRender, clearTable, clearElementContent } from './js/view/base';
+import LocalStorageHelper from "./js/LocalStorageHelper";
+
+
     
-    
-    // API BASE URL: https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?
+    // API BASE URL: https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10
     // API KEY: c3b07ba3-8c3f-41aa-9f28-3a57c6735a14
     
     
-    // state of the currency table
-    
     const state = {};
     
+// ROUTER //
+
+    // const root = null;
+    // const useHash = true; // Defaults to: false
+    // const hash = '#'; // Defaults to: '#'
+    // const router = new Navigo(root, useHash, hash);
+
+    // router
+    // .on(() => {
+    //     //fetch data from api to state
+    //     // remove previous component if exsists
+    //     // render table component in content box
+        
+    //     currencyTableView.renderTable(elements.contentBox);
+        
+    // })
+    // .on({
+    //     '/:id': (args) => {
+    //         // remove previous component
+    //         elements.contentBox.inerHTML = '';
+    //         renderLoader(elements.contentBox);
+    //         // render details for id
+    //     }
+    // })
+    // .resolve();
+
+    //-----------------------------------------------//
+
+    // ROUTER //
+    window.addEventListener('hashchange', e=>onRouteChange(e))
     
-    if(localStorage.getItem('amounts') !== null && localStorage.getItem('amounts').length > 0) {
-        //console.log('locale storage exists')
-        state.storageAmounts = JSON.parse(localStorage.getItem('amounts'));
-        //console.log(typeof state.storageAmounts)
-    } else if(localStorage.getItem('amounts') === null) {
-        //console.log('initialising new storage in state')
-        state.storageAmounts = [];
+    const onRouteChange = (event) => {
+        //console.log(event)
+        const hash = window.location.hash.substring(1);
+        //console.log(hash)
+        clearElementContent(elements.contentBox)
+        loadContent(hash);
     }
+
+    const loadContent = (urlHash) => {
+        if(urlHash === '' || urlHash === '/') {
+            //show table component
+            currencyTableView.renderTable(elements.contentBox);
+            if(state.currencyTable) {
+                //console.log('items list exsists');
+                elements.table.classList.remove('hidden');
+                tableController();
+                //console.log(state.currencyTable.items)
+            } else {
+                fetchDataController(); 
+            }
+        } else {
+            //get state from localStorage
+            //show details component
+            // elements.contentBox.innerHTML = '';
+            currencyDetailsHandler(urlHash);
+            //console.log(parseInt(urlHash) + ' from details load');
+        }
+    }
+    window.addEventListener('load', e=>{
+        // const lastState = JSON.parse(localStorage.getItem('lastState')).lastState;
+        // console.log(lastState)
+        // state.currencyTable = lastState.currencyTable;
+        // state.storageAmounts = lastState.storageAmounts;
+        // console.log(state)
+        fromStorage();
+        const url = window.location.hash;
+        //console.log(url);
+        loadContent(url);
+    });
+    // GETTING USER CURRENCY AMOUNTS FROM LOCAL STORAGE //
+
+    const fromStorage = () => {
+        if(localStorage.getItem('amounts') !== null && localStorage.getItem('amounts').length > 0) {
+            
+            state.storageAmounts = JSON.parse(localStorage.getItem('amounts'));
+            
+            // console.log(state.storageAmounts)
+            // console.log(typeof state.storageAmounts)
+        } else if(localStorage.getItem('amounts') === null) {
+            //console.log('initialising new storage in state')
+            state.storageAmounts = [];
+        }
+    }
+
+    //-----------------------------------------------//
+
+    // PAGINATION //
+
+    const insertPagination = (numOfPages) => {
+        for(let i = 1; i <= numOfPages; i++) {
+            paginationView.renderPagination(i)
+        }
     
-    // fetching data
-    const fetchDataController = async() => {
+        console.log(elements);
+        console.log('ovo', elements.paginationBox);
+        
+        elements.paginationBox.addEventListener('click', e => {
+            //console.log(e.target.text);
+            clearTable();
+            let page = ((parseInt(e.target.text) - 1) * 10) + 1;
+            renderLoader(elements.contentBox);
+            fetchDataController(page);
+            // console.log(state.currencyTable.items);
+        });
+    }
+
+    //-----------------------------------------------//
+
+    
+    // FETCH DATA //
+
+    //todo // check why function expects event as first argument
+
+    const fetchDataController = async(page = 1, itemsPerPage = 10) => {
+
+        
+
+        const url = `https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=${page}&limit=${itemsPerPage}`;
 
         if(!state.currencyTable) {
             state.currencyTable = new CurrencyTable();
-            renderLoader(elements.tableBox);
+            renderLoader(elements.contentBox);
+        } else {
+            state.currencyTable.items = [];
         }
 
-            await fetch('https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=10', {
-                headers: {'X-CMC_PRO_API_KEY' : 'c3b07ba3-8c3f-41aa-9f28-3a57c6735a14'}
-            })
-            .then(response => {
-                // ovde handlovati razlicite statuse // todo
-                if(response.status === 200) {
-                    // clear loader
-                    // check if loader exists before removing it // todo
-                    const checkLoaderArray = Array.from(elements.tableBox.childNodes);
-                    //console.log(checkLoaderArray)
-                    for(let i of checkLoaderArray) {
-                        if(i.classList !== undefined && i.classList.contains('loader')) {
-                            //console.log(i.classList.contains('loader'))
-                            elements.tableBox.removeChild(document.querySelector('.loader'));
-                        }
+        await fetch(url, {
+            headers: {'X-CMC_PRO_API_KEY' : 'c3b07ba3-8c3f-41aa-9f28-3a57c6735a14'}
+        })
+        .then(response => {
+            // ovde handlovati razlicite statuse // todo
+            if(response.status === 200) {
+                // clear loader
+                // check if loader exists before removing it // todo
+                const checkLoaderArray = Array.from(elements.contentBox.childNodes);
+                for(let i of checkLoaderArray) {
+                    if(i.classList !== undefined && i.classList.contains('loader')) {
+                        elements.contentBox.removeChild(document.querySelector('.loader'));
                     }
-                    
-                    return response.json();
-                } else {
-                    alert(response.statusText);
                 }
-                
+                return response.json();
+            } else {
+                alert(response.statusText);
+            }
+            
+        })
+        .then(data => {
+            data.data.forEach(el => {
+                const item = new Currency(el);
+                state.currencyTable.addItem(item);
             })
-            .then(data => {
-                data.data.forEach(el => {
-                    const item = new Currency(el);
-                    state.currencyTable.addItem(item);
-                })
-                // show header and table
-                animateRender();
-            })
-            .catch(e => console.log(e));
-
-            tableController();
-
-            setTimeout(fetchDataController, 60000);
+            // show header and table
+            tableController(); 
+        })
+        .catch(e => console.log(e));
+        setTimeout(fetchDataController, 60000);
     }
-    window.addEventListener('load', fetchDataController);
 
-    const user = {
-        username: 'coa'
-    };
+    //-----------------------------------------------//
 
-    // populating table
+    //window.addEventListener('load', fetchDataController);
+
+    // FILLING THE TABLE VIEW //
 
     const tableController = () => {
-
+        
         state.currencyTable.items.forEach(el => {
-            
+            //console.log(state.storageAmounts);
             if(state.storageAmounts && state.storageAmounts.length > 0) {
                 // update amount from local storage if local storage exsists
-                const localAmount = state.storageAmounts.find(e => e.id === el.id);
+                //console.log('unutra')
+                const localAmount = state.storageAmounts.find(e => {
+                    if(e.id === el.id) {
+                        return e.id === el.id
+                    }
+                });
                 //console.log(localAmount);
                 if(localAmount !== undefined) {
                     el.setAmount(localAmount.value);
                 }
+                //console.log(el);
+                currencyRowView.renderItem(el);
                 
-                currencyTableView.renderItem(el);
-
                 if(localAmount !== undefined) {
                     // enable button
-                    currencyTableView.toggleButtonEnabled(el.id);
+                    //console.log(el.id);
+                    currencyRowView.toggleButtonEnabled(el.id);
                     
                 }
             } else {
                 //console.log('empty local storage')
-                currencyTableView.renderItem(el);
-                currencyTableView.toggleButtonDisabled(el.id);
+                currencyRowView.renderItem(el);
+                currencyRowView.toggleButtonDisabled(el.id);
             }
         });
+        userValueBtnHandler();
+        userInputFieldHandler();
+        animateRender();
     }
 
     // input controller
@@ -110,11 +224,10 @@ import Currency from "./js/model/Currency";
     const handleUserInput = (id, value) => {
 
           // updating state
-          
           state.currencyTable.updateItem(id, value);   
           //update view
           const currentItem = state.currencyTable.getItemForId(id);
-          currencyTableView.updateUserValue(id, currentItem.userValue);
+          currencyRowView.updateUserValue(id, currentItem.userValue);
 
           // save amount to local storage
           handleLocalStorage(id, value);
@@ -153,42 +266,76 @@ import Currency from "./js/model/Currency";
     }
 
     //handling onButtonClick through event delegation
-
-    elements.tableBody.addEventListener('click', e => { 
-
-        if(e.target.classList.contains('input__btn')){
-            
-            let userInput;
-            if(isNaN(e.target.previousElementSibling.value)) {
-                userInput = ''
+    const userValueBtnHandler = () => {
+        elements.tableBody.addEventListener('click', e => { 
+    
+            if(e.target.classList.contains('input__btn')){
                 
-            } else {
-                userInput = parseFloat(e.target.previousElementSibling.value);
+                let userInput;
+                if(isNaN(e.target.previousElementSibling.value)) {
+                    userInput = ''
+                    
+                } else {
+                    userInput = parseFloat(e.target.previousElementSibling.value);
+                }
+                
+                
+                let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+                if(e.target.previousElementSibling.value === '') {
+                    currencyRowView.toggleButtonDisabled(selectedRowId)
+                }
+    
+                handleUserInput(selectedRowId, userInput);
+                
             }
-            
-            
-            let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
-            if(e.target.previousElementSibling.value === '') {
-                currencyTableView.toggleButtonDisabled(selectedRowId)
-            }
-
-            handleUserInput(selectedRowId, userInput);
-            
-        }
-    });
+        });
+    }
 
     // picking up info weather input field is empty
-    elements.tableBody.addEventListener('keyup', e => {
- 
-        if(e.target.classList.contains('input__field')){
-            
-            let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
-            if(e.target.value !== '') {
-                //state.currencyTable.updateItem(selectedRowId, e.target.value);
-                currencyTableView.toggleButtonEnabled(selectedRowId);
+    const userInputFieldHandler = () => {
+        elements.tableBody.addEventListener('keyup', e => {
+     
+            if(e.target.classList.contains('input__field')){
+                
+                let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
+                if(e.target.value !== '') {
+                    //state.currencyTable.updateItem(selectedRowId, e.target.value);
+                    currencyRowView.toggleButtonEnabled(selectedRowId);
+                }
             }
-        }
-    });
+        });
+    }
     
+    // ON CURRENCY ROW CLICK HANDLER //
+
+    const currencyDetailsHandler = (id) => {
+        // clear container
+        elements.contentBox.innerHTML = '';
+        // console.log(id)
+        // console.log(typeof id)
+        // get data from state
+        const element = state.currencyTable.items.find(el => el.id === parseInt(id))
+        // const stateToSave = {lastState:state};
+        // console.log(stateToSave);
+
+        // localStorage.setItem('lastState', JSON.stringify(stateToSave));
+        // console.log(element)
+        // console.log(elements.tableBody)
+        // render details element
+        currencyDetailsView.renderDetails(element, elements.contentBox)
+
+    }
+
+    document.addEventListener('click', e => {
+
+        if(e.target.classList.contains('curr-name')) {
+            let selectedCurrId = parseInt(e.target.parentElement.dataset.rowid, 10);
+            window.location.hash = selectedCurrId;
+        }
+    })
+
+    // const storage = new LocalStorageHelper();
+    // storage.getStorage();
+    //console.log(storage);
 
     

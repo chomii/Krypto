@@ -10,6 +10,9 @@ export default class CurrencyTable {
 
         return item;
     }
+    setItems(items) {
+        this.items = items;
+    }
     
     updateItem(id, newAmount) {
 

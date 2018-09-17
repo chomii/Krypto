@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
+    "navigo": "^7.1.2",
     "normalize.css": "^8.0.0"
   }
 }

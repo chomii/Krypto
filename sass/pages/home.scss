@@ -5,13 +5,16 @@ body {
   text-align: center;
   font-family: 'Open Sans', sans-serif;
 }
+.hidden {
+  display:none !important;
+}
 
 .header {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 0;
+  padding: 2rem 0;
 
   &__text {
     color: $light-grey;
@@ -22,11 +25,12 @@ body {
     font-weight: 100;
   }
 }
-.table-box {
+.content-box {
 
   color: $light-grey;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   position: relative;
 
   .loader {
@@ -77,15 +81,12 @@ body {
     }
   }
 
-  .table-hidden {
-    display:none;
-  }
   .table {
     
     border: $light-grey solid 1px;
     border-collapse: collapse;
     width: 90%;
-    margin-bottom: 3rem;
+    margin-bottom: .5rem;
 
     &__head {
       tr {
@@ -98,6 +99,22 @@ body {
 
     &__body {
 
+      tr {
+        td {
+
+          &.curr-name {
+
+            &:hover {
+              color: aquamarine;
+              cursor: pointer;
+            }
+            &:active {
+              color: coral;
+            }
+            
+          }
+        }
+      }
       tr:nth-child(2n) {
         background-color: rgba(#fff, $alpha: 0.2)
       }
@@ -135,6 +152,7 @@ body {
         &__btn {
           background-color: #fff;
           color: #183B8C;
+          height: 2rem;
           border: none;
           padding: .5rem;
           border-radius: 3px;
@@ -151,6 +169,18 @@ body {
         }
         
       }
+    }
+  }
+  .pagination {
+    display: flex;
+    margin-bottom: .5rem;
+
+    a{
+      display: inline-block;
+      background-color: transparent;
+      padding: .5rem 1rem;
+      text-decoration: none;
+      color: #fff;
     }
   }
   
