@@ -6988,6 +6988,35 @@ var renderLoader = exports.renderLoader = function renderLoader(parent) {
 
     parent.insertAdjacentHTML('afterbegin', loader);
 };
+var clearLoader = exports.clearLoader = function clearLoader(element) {
+    var checkLoaderArray = Array.from(element.childNodes);
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+        for (var _iterator = checkLoaderArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var i = _step.value;
+
+            if (i.classList !== undefined && i.classList.contains('loader')) {
+                element.removeChild(document.querySelector('.loader'));
+            }
+        }
+    } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+            }
+        } finally {
+            if (_didIteratorError) {
+                throw _iteratorError;
+            }
+        }
+    }
+};
 var animateRender = exports.animateRender = function animateRender() {
     elements.table.classList.remove('hidden');
     elements.paginationBox.classList.remove('hidden');
@@ -7062,15 +7091,12 @@ var renderTable = exports.renderTable = function renderTable(parent) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.renderDetails = undefined;
-
-var _base = require('./base');
-
 var renderDetails = exports.renderDetails = function renderDetails(currency, parent) {
-    var markup = '\n        <div class="details">\n            <h1>Name: ' + currency.name + '</h1>\n            <h2>Symbol: ' + currency.symbol + '</h2>\n            <h3>Price: ' + currency.price + '</h3>\n        </div>\n    ';
+    var markup = '\n        <div class="details">\n            <h1>Name: ' + currency.name + '</h1>\n            <h2>Symbol: ' + currency.symbol + '</h2>\n            <h3>Price: ' + currency.quotes.USD.price.toFixed(2) + '</h3>\n            <h3>Rank: ' + currency.rank + '</h3>\n            <h3>Circulating supply: ' + currency.circulating_supply + '</h3>\n            <h3>Total supply: ' + currency.total_supply + '</h3>\n            <h3>Max supply: ' + currency.max_supply + '</h3>\n        </div>\n    ';
+    console.log(currency);
     parent.insertAdjacentHTML('afterbegin', markup);
 };
-},{"./base":"js/view/base.js"}],"js/view/paginationView.js":[function(require,module,exports) {
+},{}],"js/view/paginationView.js":[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -7084,52 +7110,7 @@ var renderPagination = exports.renderPagination = function renderPagination(page
     var markup = '\n        <a href="#">' + page + '</a>\n    ';
     _base.elements.paginationBox.insertAdjacentHTML('beforeend', markup);
 };
-},{"./base":"js/view/base.js"}],"js/LocalStorageHelper.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var LocalStorageHelper = function () {
-    function LocalStorageHelper() {
-        _classCallCheck(this, LocalStorageHelper);
-
-        this.storage = {};
-    }
-
-    _createClass(LocalStorageHelper, [{
-        key: "getStorage",
-        value: function getStorage(name) {
-            this.storage = JSON.parse(localStorage.getItem(name));
-            return this.storage;
-        }
-    }, {
-        key: "addToStorage",
-        value: function addToStorage(name, data) {
-            //console.log(name)
-            var dataToSave = [];
-            dataToSave.push(data);
-            localStorage.setItem(name, JSON.stringify(dataToSave));
-            //console.log(this.storage)
-        }
-    }, {
-        key: "getItemFromStorage",
-        value: function getItemFromStorage(name) {}
-    }, {
-        key: "deleteItemFromStorage",
-        value: function deleteItemFromStorage(name) {}
-    }]);
-
-    return LocalStorageHelper;
-}();
-
-exports.default = LocalStorageHelper;
-},{}],"index.js":[function(require,module,exports) {
+},{"./base":"js/view/base.js"}],"index.js":[function(require,module,exports) {
 'use strict';
 
 var _this = undefined;
@@ -7163,10 +7144,6 @@ var _paginationView = require('./js/view/paginationView');
 var paginationView = _interopRequireWildcard(_paginationView);
 
 var _base = require('./js/view/base');
-
-var _LocalStorageHelper = require('./js/LocalStorageHelper');
-
-var _LocalStorageHelper2 = _interopRequireDefault(_LocalStorageHelper);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -7236,20 +7213,14 @@ var loadContent = function loadContent(urlHash) {
     } else {
         //get state from localStorage
         //show details component
-        // elements.contentBox.innerHTML = '';
-        currencyDetailsHandler(urlHash);
-        //console.log(parseInt(urlHash) + ' from details load');
+        var lastCurr = localStorage.getItem('selectedCurrency');
+        currencyDetailsHandler(lastCurr);
     }
 };
 window.addEventListener('load', function (e) {
-    // const lastState = JSON.parse(localStorage.getItem('lastState')).lastState;
-    // console.log(lastState)
-    // state.currencyTable = lastState.currencyTable;
-    // state.storageAmounts = lastState.storageAmounts;
-    // console.log(state)
+
     fromStorage();
     var url = window.location.hash;
-    //console.log(url);
     loadContent(url);
 });
 // GETTING USER CURRENCY AMOUNTS FROM LOCAL STORAGE //
@@ -7323,34 +7294,7 @@ var fetchDataController = function () {
                             if (response.status === 200) {
                                 // clear loader
                                 // check if loader exists before removing it // todo
-                                var checkLoaderArray = Array.from(_base.elements.contentBox.childNodes);
-                                var _iteratorNormalCompletion = true;
-                                var _didIteratorError = false;
-                                var _iteratorError = undefined;
-
-                                try {
-                                    for (var _iterator = checkLoaderArray[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                                        var i = _step.value;
-
-                                        if (i.classList !== undefined && i.classList.contains('loader')) {
-                                            _base.elements.contentBox.removeChild(document.querySelector('.loader'));
-                                        }
-                                    }
-                                } catch (err) {
-                                    _didIteratorError = true;
-                                    _iteratorError = err;
-                                } finally {
-                                    try {
-                                        if (!_iteratorNormalCompletion && _iterator.return) {
-                                            _iterator.return();
-                                        }
-                                    } finally {
-                                        if (_didIteratorError) {
-                                            throw _iteratorError;
-                                        }
-                                    }
-                                }
-
+                                (0, _base.clearLoader)(_base.elements.contentBox);
                                 return response.json();
                             } else {
                                 alert(response.statusText);
@@ -7492,6 +7436,7 @@ var userValueBtnHandler = function userValueBtnHandler() {
 };
 
 // picking up info weather input field is empty
+
 var userInputFieldHandler = function userInputFieldHandler() {
     _base.elements.tableBody.addEventListener('keyup', function (e) {
 
@@ -7508,37 +7453,58 @@ var userInputFieldHandler = function userInputFieldHandler() {
 
 // ON CURRENCY ROW CLICK HANDLER //
 
+var fetchDetails = function () {
+    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(id) {
+        var data;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            while (1) {
+                switch (_context2.prev = _context2.next) {
+                    case 0:
+                        (0, _base.renderLoader)(_base.elements.contentBox);
+                        _context2.next = 3;
+                        return fetch('https://api.coinmarketcap.com/v2/ticker/' + id + '/');
+
+                    case 3:
+                        _context2.next = 5;
+                        return _context2.sent.json();
+
+                    case 5:
+                        data = _context2.sent;
+
+
+                        (0, _base.clearLoader)(_base.elements.contentBox);
+                        console.log(data);
+                        currencyDetailsView.renderDetails(data.data, _base.elements.contentBox);
+
+                    case 9:
+                    case 'end':
+                        return _context2.stop();
+                }
+            }
+        }, _callee2, _this);
+    }));
+
+    return function fetchDetails(_x3) {
+        return _ref2.apply(this, arguments);
+    };
+}();
+
 var currencyDetailsHandler = function currencyDetailsHandler(id) {
     // clear container
-    _base.elements.contentBox.innerHTML = '';
-    // console.log(id)
-    // console.log(typeof id)
+    (0, _base.clearElementContent)(_base.elements.contentBox);
     // get data from state
-    var element = state.currencyTable.items.find(function (el) {
-        return el.id === parseInt(id);
-    });
-    // const stateToSave = {lastState:state};
-    // console.log(stateToSave);
-
-    // localStorage.setItem('lastState', JSON.stringify(stateToSave));
-    // console.log(element)
-    // console.log(elements.tableBody)
-    // render details element
-    currencyDetailsView.renderDetails(element, _base.elements.contentBox);
+    fetchDetails(id);
 };
 
 document.addEventListener('click', function (e) {
 
     if (e.target.classList.contains('curr-name')) {
         var selectedCurrId = parseInt(e.target.parentElement.dataset.rowid, 10);
+        localStorage.setItem('selectedCurrency', selectedCurrId);
         window.location.hash = selectedCurrId;
     }
 });
-
-// const storage = new LocalStorageHelper();
-// storage.getStorage();
-//console.log(storage);
-},{"@babel/polyfill":"node_modules/@babel/polyfill/lib/index.js","./sass/main.scss":"sass/main.scss","./js/model/CurrencyTable":"js/model/CurrencyTable.js","./js/model/Currency":"js/model/Currency.js","./js/view/currencyrRowView":"js/view/currencyrRowView.js","./js/view/currencyTableView":"js/view/currencyTableView.js","./js/view/currencyDetailsView":"js/view/currencyDetailsView.js","./js/view/paginationView":"js/view/paginationView.js","./js/view/base":"js/view/base.js","./js/LocalStorageHelper":"js/LocalStorageHelper.js"}],"../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"@babel/polyfill":"node_modules/@babel/polyfill/lib/index.js","./sass/main.scss":"sass/main.scss","./js/model/CurrencyTable":"js/model/CurrencyTable.js","./js/model/Currency":"js/model/Currency.js","./js/view/currencyrRowView":"js/view/currencyrRowView.js","./js/view/currencyTableView":"js/view/currencyTableView.js","./js/view/currencyDetailsView":"js/view/currencyDetailsView.js","./js/view/paginationView":"js/view/paginationView.js","./js/view/base":"js/view/base.js"}],"../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -7567,7 +7533,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '42201' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '38683' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 

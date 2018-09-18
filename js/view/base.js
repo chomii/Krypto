@@ -90,6 +90,14 @@ export const renderLoader = (parent) => {
     parent.insertAdjacentHTML('afterbegin', loader);
     
 }
+export const clearLoader = (element) => {
+    const checkLoaderArray = Array.from(element.childNodes);
+        for(let i of checkLoaderArray) {
+            if(i.classList !== undefined && i.classList.contains('loader')) {
+                element.removeChild(document.querySelector('.loader'));
+            }
+        }
+}
 export const animateRender = () => {
     elements.table.classList.remove('hidden');
     elements.paginationBox.classList.remove('hidden');

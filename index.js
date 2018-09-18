@@ -7,8 +7,7 @@ import * as currencyRowView from './js/view/currencyrRowView';
 import * as currencyTableView from './js/view/currencyTableView';
 import * as currencyDetailsView from './js/view/currencyDetailsView';
 import * as paginationView from './js/view/paginationView';
-import { elements, renderLoader, animateRender, clearTable, clearElementContent } from './js/view/base';
-import LocalStorageHelper from "./js/LocalStorageHelper";
+import { elements, renderLoader,clearLoader, animateRender, clearTable, clearElementContent } from './js/view/base';
 
 
     
@@ -72,20 +71,14 @@ import LocalStorageHelper from "./js/LocalStorageHelper";
         } else {
             //get state from localStorage
             //show details component
-            // elements.contentBox.innerHTML = '';
-            currencyDetailsHandler(urlHash);
-            //console.log(parseInt(urlHash) + ' from details load');
+            const lastCurr = localStorage.getItem('selectedCurrency')
+            currencyDetailsHandler(lastCurr);
         }
     }
     window.addEventListener('load', e=>{
-        // const lastState = JSON.parse(localStorage.getItem('lastState')).lastState;
-        // console.log(lastState)
-        // state.currencyTable = lastState.currencyTable;
-        // state.storageAmounts = lastState.storageAmounts;
-        // console.log(state)
+        
         fromStorage();
         const url = window.location.hash;
-        //console.log(url);
         loadContent(url);
     });
     // GETTING USER CURRENCY AMOUNTS FROM LOCAL STORAGE //
@@ -134,8 +127,6 @@ import LocalStorageHelper from "./js/LocalStorageHelper";
 
     const fetchDataController = async(page = 1, itemsPerPage = 10) => {
 
-        
-
         const url = `https://cors-anywhere.herokuapp.com/https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=${page}&limit=${itemsPerPage}`;
 
         if(!state.currencyTable) {
@@ -153,12 +144,7 @@ import LocalStorageHelper from "./js/LocalStorageHelper";
             if(response.status === 200) {
                 // clear loader
                 // check if loader exists before removing it // todo
-                const checkLoaderArray = Array.from(elements.contentBox.childNodes);
-                for(let i of checkLoaderArray) {
-                    if(i.classList !== undefined && i.classList.contains('loader')) {
-                        elements.contentBox.removeChild(document.querySelector('.loader'));
-                    }
-                }
+                clearLoader(elements.contentBox)
                 return response.json();
             } else {
                 alert(response.statusText);
@@ -278,8 +264,7 @@ import LocalStorageHelper from "./js/LocalStorageHelper";
                 } else {
                     userInput = parseFloat(e.target.previousElementSibling.value);
                 }
-                
-                
+
                 let selectedRowId = parseInt(e.target.parentElement.parentElement.dataset.rowid, 10);
                 if(e.target.previousElementSibling.value === '') {
                     currencyRowView.toggleButtonDisabled(selectedRowId)
@@ -292,6 +277,7 @@ import LocalStorageHelper from "./js/LocalStorageHelper";
     }
 
     // picking up info weather input field is empty
+
     const userInputFieldHandler = () => {
         elements.tableBody.addEventListener('keyup', e => {
      
@@ -308,34 +294,30 @@ import LocalStorageHelper from "./js/LocalStorageHelper";
     
     // ON CURRENCY ROW CLICK HANDLER //
 
+    const fetchDetails = async (id) => {
+        renderLoader(elements.contentBox);
+        const data = await (await fetch(`https://api.coinmarketcap.com/v2/ticker/${id}/`)).json();
+        
+        clearLoader(elements.contentBox);
+        console.log(data)
+        currencyDetailsView.renderDetails(data.data, elements.contentBox)
+    }
+
     const currencyDetailsHandler = (id) => {
         // clear container
-        elements.contentBox.innerHTML = '';
-        // console.log(id)
-        // console.log(typeof id)
+        clearElementContent(elements.contentBox)
         // get data from state
-        const element = state.currencyTable.items.find(el => el.id === parseInt(id))
-        // const stateToSave = {lastState:state};
-        // console.log(stateToSave);
-
-        // localStorage.setItem('lastState', JSON.stringify(stateToSave));
-        // console.log(element)
-        // console.log(elements.tableBody)
-        // render details element
-        currencyDetailsView.renderDetails(element, elements.contentBox)
-
+        fetchDetails(id);
     }
 
     document.addEventListener('click', e => {
 
         if(e.target.classList.contains('curr-name')) {
             let selectedCurrId = parseInt(e.target.parentElement.dataset.rowid, 10);
+            localStorage.setItem('selectedCurrency', selectedCurrId);
             window.location.hash = selectedCurrId;
         }
     })
 
-    // const storage = new LocalStorageHelper();
-    // storage.getStorage();
-    //console.log(storage);
 
     
